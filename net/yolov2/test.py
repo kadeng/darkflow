@@ -5,6 +5,7 @@ import os
 #from scipy.special import expit
 from utils.box import BoundBox, box_iou, prob_compare
 from utils.box import prob_compare2, box_intersection
+import functools
 
 def expit(x):
 	return 1. / (1. + np.exp(-x))
@@ -46,7 +47,7 @@ def postprocess(self, net_out, im, save = True):
 	for c in range(C):
 		for i in range(len(boxes)):
 			boxes[i].class_num = c
-		boxes = sorted(boxes, cmp = prob_compare)
+		boxes = sorted(boxes, key = prob_compare)
 		for i in range(len(boxes)):
 			boxi = boxes[i]
 			if boxi.probs[c] == 0: continue
@@ -82,7 +83,7 @@ def postprocess(self, net_out, im, save = True):
 				colors[max_indx], thick)
 			mess = '{}'.format(label)
 			cv2.putText(imgcv, mess, (left, top - 12), 
-				0, 1e-3 * h, colors[max_indx],thick/5)
+				0, 1e-3 * h, colors[max_indx],int(thick/5))
 
 	if not save: return imgcv
 	outfolder = os.path.join(self.FLAGS.test, 'out') 
@@ -119,7 +120,7 @@ def _postprocess(self, net_out, im, save = True):
 				boxes.append(bx)
 
 	# non max suppress boxes
-	boxes = sorted(boxes, cmp = prob_compare2)
+	boxes = sorted(boxes, key = functools.cmp_to_key(prob_compare2))
 	for i in range(len(boxes)):
 		boxi = boxes[i]
 		if boxi.pi == 0: continue
